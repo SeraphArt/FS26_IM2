@@ -116,6 +116,22 @@ section div {
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
+
+.mana_color_selector {
+    grid-column: span 11;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    gap: 60px;
+    margin-top: 20px;
+}
+
+.mana_color_selector dotlottie-wc {
+    width: 150px;
+    height: 150px;
+}
+
 .mana-divider {
     grid-column: span 11;
 
