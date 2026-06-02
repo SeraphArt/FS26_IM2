@@ -150,13 +150,13 @@ section div {
 
 .submit {
     /* not sticky: keep in normal document flow and center above footer */
-    position: static;
+
+    grid-column: 1 / -1;   /* nimmt volle Breite vom Grid */
     display: flex;
-    align-items: center;
     justify-content: center;
-    width: max-content;
-    margin: 24px auto 48px;
-    pointer-events: auto;
+    align-items: center;
+
+    margin: 20px 0 48px;
 }
 
 .submit dotlottie-wc {
@@ -197,6 +197,83 @@ section div {
     max-width: 250px;
     /* kürzer */
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.dropdown-container {
+    width: 500px;
+    margin: 60px auto;
+}
+
+.dropdown-header {
+    background: #94724d;
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+}
+
+.dropdown-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+}
+
+.dropdown-content.open {
+    max-height: 700px;
+}
+
+.menu {
+    background: #8b5d2a;
+}
+
+.menu-header {
+    height: 80px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    background: #8b5d2a;
+}
+
+.menu-item {
+    height: 66px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+
+    background: #b39a7d;
+    color: white;
+    font-size: 32px;
+
+    border-top: 2px solid white;
+}
+
+.radio {
+    position: absolute;
+    right: 40px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: white;
+    cursor: pointer;
+}
+
+.radio.active::after {
+    content: "";
+    position: absolute;
+
+    width: 14px;
+    height: 14px;
+
+    border-radius: 50%;
+    background: #8b5d2a;
+
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 
