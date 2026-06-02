@@ -123,13 +123,45 @@ section div {
     justify-content: center;
     align-items: center;
 
-    gap: 60px;
+    gap: 30px;
     margin-top: 20px;
 }
 
 .mana_color_selector dotlottie-wc {
-    width: 150px;
-    height: 150px;
+    width: 120px;
+    height: 120px;
+}
+
+.mana-cost {
+    grid-column: span 11;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin-top: 20px;
+}
+
+.mana-cost dotlottie-wc {
+    width: 90px;
+    height: 90px;
+}
+
+.submit {
+    /* not sticky: keep in normal document flow and center above footer */
+    position: static;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: max-content;
+    margin: 24px auto 48px;
+    pointer-events: auto;
+}
+
+.submit dotlottie-wc {
+    width: 100px;
+    height: 100px;
 }
 
 .mana-divider {
