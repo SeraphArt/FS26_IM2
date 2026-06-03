@@ -130,7 +130,21 @@ section div {
 .mana_color_selector dotlottie-wc {
     width: 120px;
     height: 120px;
+
+    display: inline-block;
+    cursor: pointer;
+    user-select: none;
+    touch-action: manipulation;
+
+    transform: translateZ(0);
+    transition: transform 120ms ease, opacity 120ms ease;
+    will-change: transform;
 }
+
+.mana_color_selector dotlottie-wc:hover {
+    transform: scale(1.06);
+}
+
 
 .mana-cost {
     grid-column: span 11;
@@ -146,7 +160,25 @@ section div {
 .mana-cost dotlottie-wc {
     width: 90px;
     height: 90px;
+
+    display: inline-block;
+    cursor: pointer;
+    user-select: none;
+    touch-action: manipulation;
+
+    transform: translateZ(0);
+    transition: transform 120ms ease, opacity 120ms ease;
+    will-change: transform;
 }
+
+.mana-cost dotlottie-wc:hover {
+    transform: scale(1.06);
+}
+
+/* .mana-cost dotlottie-wc:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+} */
 
 .submit {
     /* not sticky: keep in normal document flow and center above footer */
@@ -158,11 +190,32 @@ section div {
     align-items: center;
 
     margin: 20px 0 48px;
+
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .submit dotlottie-wc {
-    width: 100px;
-    height: 100px;
+    width: 300px;
+    height: 300px;
+
+    display: inline-block;
+    cursor: pointer;
+    user-select: none;
+    touch-action: manipulation;
+
+    transform: translateZ(0);
+    transition: transform 120ms ease, opacity 120ms ease;
+    will-change: transform;
+}
+
+.submit:hover dotlottie-wc {
+    transform: scale(1.03);
+}
+
+.submit:active dotlottie-wc {
+    transform: scale(0.99);
+    opacity: 0.9;
 }
 
 .mana-divider {
@@ -206,14 +259,17 @@ section div {
     display: flex;
     justify-content: center;
     align-items: center;
-    height;
+
 
     margin-top: 40px;
 }
 
 .dropdown-container {
+    grid-column: 1 / -1;
     width: 500px;
-    margin: 60px auto;
+    justify-self: center;
+
+    position: relative;
 }
 
 .dropdown-header {
@@ -227,6 +283,12 @@ section div {
 }
 
 .dropdown-content {
+    position: absolute;
+    top: 80px;
+    left: 0;
+    right: 0;
+    z-index: 10;
+
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.4s ease;
@@ -263,7 +325,7 @@ section div {
     border-top: 2px solid white;
 }
 
-.radio {
+.menu_point {
     position: absolute;
     right: 40px;
     width: 28px;
@@ -273,7 +335,7 @@ section div {
     cursor: pointer;
 }
 
-.radio.active::after {
+.menu_point.active::after {
     content: "";
     position: absolute;
 

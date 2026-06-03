@@ -24,14 +24,14 @@ toggleButton.addEventListener("click", () => {
 
 
 // Weiße Punkte klickbar machen
-const radios = document.querySelectorAll(".radio");
+const menu_points = document.querySelectorAll(".menu_point");
 
-radios.forEach(radio => {
+menu_points.forEach(menu_point => {
 
-    radio.addEventListener("click", (e) => {
+    menu_point.addEventListener("click", (e) => {
 
         e.stopPropagation();
 
-        radio.classList.toggle("active");
+        menu_point.classList.toggle("active");
     });
 });
