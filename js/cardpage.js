@@ -79,18 +79,18 @@ function getCardImageUrl(card) {
     return null;
 }
 
-async function fetchScryfallCards(query, { maxCards = 60 } = {}) {
+async function fetchScryfallCards(query) {
     let url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}`;
     const allCards = [];
 
     logAktion("Scryfall Anfrage vorbereiten", {
         "Query (Suchtext)": query,
         "Erste URL": url,
-        "Max. Karten": maxCards,
+        "Max. Karten": "alle Treffer",
         "Erklärung": "Scryfall liefert evtl. mehrere Seiten (Pagination).",
     });
 
-    while (url && allCards.length < maxCards) {
+    while (url) {
         logAktion("Scryfall Seite laden", {
             "URL": url,
             "Bisher geladen": allCards.length,
@@ -119,7 +119,7 @@ async function fetchScryfallCards(query, { maxCards = 60 } = {}) {
         }
     }
 
-    return allCards.slice(0, maxCards);
+    return allCards;
 }
 
 function renderCards(cards) {
@@ -193,11 +193,11 @@ async function main() {
     });
 
     if (status) {
-        status.textContent = "Loading cards...";
+        status.textContent = "Loading all matching cards...";
     }
 
     try {
-        const cards = await fetchScryfallCards(query, { maxCards: 60 });
+        const cards = await fetchScryfallCards(query);
         renderCards(cards);
 
         // Extra: Klicks auf Karten (Links) nachvollziehbar machen
