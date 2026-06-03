@@ -142,6 +142,52 @@ section div {
     opacity: 0.9;
 }
 
+.results_status {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-family: Adamina, serif;
+    color: #5A2600;
+    font-size: clamp(16px, 2.2vw, 24px);
+    margin-top: clamp(10px, 2vw, 18px);
+}
+
+.results {
+    grid-column: 1 / -1;
+    width: min(1100px, 92vw);
+    justify-self: center;
+
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(clamp(140px, 18vw, 220px), 1fr));
+    gap: clamp(12px, 2vw, 22px);
+
+    margin-top: clamp(12px, 2vw, 22px);
+    margin-bottom: clamp(24px, 4vw, 48px);
+}
+
+.results .card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(6px, 1vw, 10px);
+
+    text-decoration: none;
+    color: inherit;
+}
+
+.results .card img {
+    width: 100%;
+    height: auto;
+    border-radius: clamp(8px, 1vw, 12px);
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.results .card_name {
+    font-family: Adamina, serif;
+    color: #5A2600;
+    font-size: clamp(12px, 1.6vw, 16px);
+    text-align: center;
+}
+
 .line {
     flex: 1;
     height: clamp(2px, 0.4vw, 4px);
@@ -183,6 +229,12 @@ section div {
     transform: scale(1.06);
 }
 
+.mana_color_selector dotlottie-wc.selected {
+    outline: clamp(2px, 0.4vw, 4px) solid #6b3e11;
+    outline-offset: clamp(2px, 0.4vw, 6px);
+    border-radius: 999px;
+}
+
 
 .mana-cost {
     grid-column: span 11;
@@ -213,6 +265,12 @@ section div {
 
 .mana-cost dotlottie-wc:hover {
     transform: scale(1.06);
+}
+
+.mana-cost dotlottie-wc.selected {
+    outline: clamp(2px, 0.4vw, 4px) solid #6b3e11;
+    outline-offset: clamp(2px, 0.4vw, 6px);
+    border-radius: 999px;
 }
 
 /* .mana-cost dotlottie-wc:active {
