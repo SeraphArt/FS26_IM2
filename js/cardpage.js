@@ -1,40 +1,3 @@
-function zeitstempel() {
-    return new Date().toLocaleTimeString("de-CH", { hour12: false });
-}
-
-function elementKurzInfo(el) {
-    if (!el) return "(kein Element)";
-
-    const tag = (el.tagName || "").toLowerCase();
-    const id = el.id ? `#${el.id}` : "";
-    const classes = el.classList && el.classList.length ? `.${Array.from(el.classList).slice(0, 4).join(".")}` : "";
-    const dataAttrs = el.dataset && Object.keys(el.dataset).length
-        ? ` data=${JSON.stringify(el.dataset)}`
-        : "";
-
-    return `${tag}${id}${classes}${dataAttrs}`.trim();
-}
-
-function logAktion(titel, details = {}) {
-    console.groupCollapsed(`[${zeitstempel()}] ${titel}`);
-    Object.entries(details).forEach(([k, v]) => console.log(`${k}:`, v));
-    console.groupEnd();
-}
-
-// Global: jeden Klick loggen
-document.addEventListener(
-    "click",
-    (e) => {
-        const target = e.target;
-        logAktion("Klick erkannt (Cardpage)", {
-            "Geklicktes Element": elementKurzInfo(target),
-            "Nächster Button/Link": elementKurzInfo(target?.closest?.("button, a")),
-            "Position (Viewport)": { x: e.clientX, y: e.clientY },
-        });
-    },
-    true
-);
-
 function parseCsvParam(params, name) {
     const raw = params.get(name);
     if (!raw) return [];
@@ -156,19 +119,7 @@ async function fetchScryfallCards(query) {
     let url = `https://api.scryfall.com/cards/search?include_extras=true&include_variations=true&unique=prints&q=${encodeURIComponent(query)}`;
     const allCards = [];
 
-    logAktion("Scryfall Anfrage vorbereiten", {
-        "Query (Suchtext)": query,
-        "Erste URL": url,
-        "Max. Karten": "alle Treffer",
-        "Erklärung": "Scryfall liefert evtl. mehrere Seiten (Pagination). Extras und Varianten sind mit dabei.",
-    });
-
     while (url) {
-        logAktion("Scryfall Seite laden", {
-            "URL": url,
-            "Bisher geladen": allCards.length,
-        });
-
         const res = await fetch(url);
         if (!res.ok) {
             throw new Error(`Scryfall request failed (${res.status})`);
@@ -178,12 +129,6 @@ async function fetchScryfallCards(query) {
         if (Array.isArray(json.data)) {
             allCards.push(...json.data);
         }
-
-        logAktion("Scryfall Antwort erhalten", {
-            "Karten in dieser Seite": Array.isArray(json.data) ? json.data.length : 0,
-            "Total bisher": allCards.length,
-            "Hat mehr Seiten?": Boolean(json.has_more),
-        });
 
         if (json.has_more && json.next_page) {
             url = json.next_page;
@@ -205,18 +150,10 @@ function renderCards(cards) {
 
     if (!cards.length) {
         status.textContent = "No cards found for your selection.";
-        logAktion("Render: keine Karten", {
-            "Hinweis": "Die Filter-Kombination hat keine Treffer ergeben.",
-        });
         return;
     }
 
     status.textContent = `${cards.length} card(s) found.`;
-
-    logAktion("Render: Karten anzeigen", {
-        "Anzahl Karten": cards.length,
-        "Hinweis": "Bilder werden nachgeladen (lazy loading).",
-    });
 
     for (const card of cards) {
         const imageUrl = getCardImageUrl(card);
@@ -252,20 +189,7 @@ async function main() {
     const types = parseCsvParam(params, "types");
     const colorMode = (params.get("colorMode") || "include").toLowerCase() === "exact" ? "exact" : "include";
 
-    logAktion("Filter aus URL gelesen", {
-        "colors": colors.length ? colors : "(keine)",
-        "mvs": mvs.length ? mvs : "(keine)",
-        "types": types.length ? types : "(keine)",
-        "colorMode": colorMode,
-        "Erklärung": "Diese Werte kamen von der Startseite (Submit).",
-    });
-
     const query = buildScryfallQuery({ colors, mvs, types, colorMode });
-
-    logAktion("Scryfall Query gebaut", {
-        "Query": query,
-        "Erklärung": "Damit sucht Scryfall nach passenden Karten.",
-    });
 
     if (status) {
         status.textContent = "Loading all matching cards...";
@@ -279,40 +203,12 @@ async function main() {
             ? cards.filter((card) => matchesSelectedColors(card, colors, colorMode))
             : cards;
 
-        logAktion("Farbfilter nach API-Farbfeld angewendet", {
-            "Vorher (Anzahl Karten)": cards.length,
-            "Nachher (Anzahl Karten)": cardsAfterColorCheck.length,
-            "Erklärung": shouldApplyColorPostFilter
-                ? "Farbprüfung nutzt immer colors + color_identity (inkl. multicolor identities und strict colorless für C)."
-                : "Kein Farbfilter ausgewählt.",
-        });
-
         renderCards(cardsAfterColorCheck);
-
-        // Extra: Klicks auf Karten (Links) nachvollziehbar machen
-        const results = document.getElementById("results");
-        if (results && !results.dataset.clickLoggerAttached) {
-            results.dataset.clickLoggerAttached = "true";
-            results.addEventListener("click", (e) => {
-                const cardLink = e.target.closest("a.card");
-                if (!cardLink) return;
-                logAktion("Karte angeklickt", {
-                    "Name": cardLink.querySelector(".card_name")?.textContent || "(unbekannt)",
-                    "Link": cardLink.href,
-                    "Hinweis": "Öffnet Scryfall in neuem Tab.",
-                });
-            });
-        }
     } catch (err) {
         console.error(err);
         if (status) {
             status.textContent = "Failed to load cards. Please try again.";
         }
-
-        logAktion("Fehler beim Laden", {
-            "Fehler": String(err?.message || err),
-            "Tipp": "Falls du CORS/Netzwerkfehler siehst: Seite über einen lokalen Server öffnen (z.B. Live Server).",
-        });
     }
 }
 
