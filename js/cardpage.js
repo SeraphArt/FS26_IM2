@@ -80,14 +80,14 @@ function getCardImageUrl(card) {
 }
 
 async function fetchScryfallCards(query) {
-    let url = `https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}`;
+    let url = `https://api.scryfall.com/cards/search?include_extras=true&include_variations=true&unique=prints&q=${encodeURIComponent(query)}`;
     const allCards = [];
 
     logAktion("Scryfall Anfrage vorbereiten", {
         "Query (Suchtext)": query,
         "Erste URL": url,
         "Max. Karten": "alle Treffer",
-        "Erklärung": "Scryfall liefert evtl. mehrere Seiten (Pagination).",
+        "Erklärung": "Scryfall liefert evtl. mehrere Seiten (Pagination). Extras und Varianten sind mit dabei.",
     });
 
     while (url) {
