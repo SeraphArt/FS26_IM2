@@ -37,8 +37,31 @@
 <dotlottie-wc src="https://lottie.host/c382274c-15d2-47f8-b3ea-68b2516536e9/JF3eWw52Sc.lottie" stateMachineId="menu_animation_component_test_kalid"></dotlottie-wc>
 </div>
 
+    <div class="color-match-toggle-wrap">
+        <span class="color-match-label">Color Match</span>
+        <div class="color-match-switch-row">
+            <span id="colorMatchIncludeLabel" class="color-match-side-label">Include</span>
+            <button
+                id="colorMatchToggle"
+                class="color-match-toggle"
+                type="button"
+                data-mode="include"
+                aria-label="Toggle color match mode"
+                aria-pressed="true"></button>
+            <span id="colorMatchExactLabel" class="color-match-side-label">Exact</span>
+        </div>
+    </div>
+
 
 <div class="mana_color_selector">
+<dotlottie-wc
+    class="filter-color"
+    data-color="C"
+    src="https://lottie.host/c8c36df5-26a6-407e-bee3-059fba6356fa/aRYa60bgPS.lottie"
+    stateMachineId="colorless_2"
+    aria-label="Colorless"
+    title="Colorless"></dotlottie-wc>
+
      <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.14/dist/dotlottie-wc.js" type="module"></script>
 <dotlottie-wc class="filter-color" data-color="U" src="https://lottie.host/16188239-53b4-4ce0-8a17-03575b040a6e/MItHZ7mjOX.lottie" stateMachineId="blue_4"></dotlottie-wc>
     
@@ -57,10 +80,8 @@
      <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.14/dist/dotlottie-wc.js" type="module"></script>
 <dotlottie-wc class="filter-color" data-color="B" src="https://lottie.host/c9057748-83e9-4585-b93e-504ce17e18e9/nvQ2ow4vZP.lottie" stateMachineId="black_2"></dotlottie-wc>   
 
-<button class="filter-chip filter-color" data-color="C" type="button" aria-label="Colorless" title="Colorless">C</button>
-
-    
 </div>
+
         <div class="mana-divider">
     <div class="mana-line"></div>
 
@@ -71,7 +92,13 @@
 
     <div class="mana-cost">
 
-<button class="filter-chip filter-mv" data-mv="0" type="button">0</button>
+<dotlottie-wc
+    class="filter-mv"
+    data-mv="0"
+    src="https://lottie.host/dc11023f-430c-4440-a76f-d9296a3e682c/C9KumbOcd9.lottie"
+    stateMachineId="0_1"
+    aria-label="Mana value 0"
+    title="Mana value 0"></dotlottie-wc>
 
 <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.9.14/dist/dotlottie-wc.js" type="module"></script>
 <dotlottie-wc class="filter-mv" data-mv="1" src="https://lottie.host/02d7097b-8e9b-4b34-9844-0b5dddf604d0/lGEwUbOrmE.lottie" stateMachineId="1_wl_2"></dotlottie-wc>

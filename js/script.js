@@ -39,10 +39,7 @@ document.addEventListener(
     true
 );
 
-
-
-
-
+let suppressFilterToggle = false;
 
 
 // Elemente holen
@@ -95,37 +92,61 @@ menu_points.forEach(menu_point => {
     });
 });
 
-// Color filter selection
-document.querySelectorAll(".filter-color").forEach((el) => {
-    el.addEventListener("click", () => {
-        const farbe = (el.dataset.color || "?").trim();
-        const warSelected = el.classList.contains("selected");
-        el.classList.toggle("selected");
-        const istSelected = el.classList.contains("selected");
-        logAktion("Farbe geklickt", {
-            "Farb-Code": farbe,
-            "Vorher ausgewählt?": warSelected,
-            "Jetzt ausgewählt?": istSelected,
-            "Erklärung": "Ausgewählte Farben werden später zur Suche verwendet.",
-        });
-    });
-});
+function findFilterTargetFromEvent(event, selector, container) {
+    if (typeof event.composedPath === "function") {
+        const hit = event
+            .composedPath()
+            .find((node) => node?.matches?.(selector));
+        if (hit && (!container || container.contains(hit))) {
+            return hit;
+        }
+    }
 
-// Mana value (mv) filter selection
-document.querySelectorAll(".filter-mv").forEach((el) => {
-    el.addEventListener("click", () => {
-        const mv = (el.dataset.mv || "?").trim();
-        const warSelected = el.classList.contains("selected");
-        el.classList.toggle("selected");
-        const istSelected = el.classList.contains("selected");
-        logAktion("Manakosten geklickt", {
-            "Mana Value (MV)": mv,
-            "Vorher ausgewählt?": warSelected,
-            "Jetzt ausgewählt?": istSelected,
-            "Erklärung": "MV ist die umgewandelte Manakosten-Zahl (z.B. 3).",
-        });
+    const direct = event.target?.closest?.(selector);
+    if (direct && (!container || container.contains(direct))) {
+        return direct;
+    }
+
+    return null;
+}
+
+// Color filter selection (capture-phase to support dotlottie shadow DOM internals)
+document.addEventListener("click", (event) => {
+    if (suppressFilterToggle) return;
+
+    const el = findFilterTargetFromEvent(event, ".filter-color", document);
+    if (!el) return;
+
+    const farbe = (el.dataset.color || "?").trim();
+    const warSelected = el.classList.contains("selected");
+    el.classList.toggle("selected");
+    const istSelected = el.classList.contains("selected");
+    logAktion("Farbe geklickt", {
+        "Farb-Code": farbe,
+        "Vorher ausgewählt?": warSelected,
+        "Jetzt ausgewählt?": istSelected,
+        "Erklärung": "Ausgewählte Farben werden später zur Suche verwendet.",
     });
-});
+}, true);
+
+// Mana value (mv) filter selection (capture-phase for dotlottie compatibility)
+document.addEventListener("click", (event) => {
+    if (suppressFilterToggle) return;
+
+    const el = findFilterTargetFromEvent(event, ".filter-mv", document);
+    if (!el) return;
+
+    const mv = (el.dataset.mv || "?").trim();
+    const warSelected = el.classList.contains("selected");
+    el.classList.toggle("selected");
+    const istSelected = el.classList.contains("selected");
+    logAktion("Manakosten geklickt", {
+        "Mana Value (MV)": mv,
+        "Vorher ausgewählt?": warSelected,
+        "Jetzt ausgewählt?": istSelected,
+        "Erklärung": "MV ist die umgewandelte Manakosten-Zahl (z.B. 3).",
+    });
+}, true);
 
 function getSelectedColors() {
     return Array.from(document.querySelectorAll(".filter-color.selected"))
@@ -148,25 +169,107 @@ function getSelectedTypes() {
         .filter(Boolean);
 }
 
+function getColorMatchModeFromUrl() {
+    const mode = (new URLSearchParams(window.location.search).get("colorMode") || "").toLowerCase();
+    return mode === "exact" ? "exact" : "include";
+}
+
+function setupColorMatchToggle() {
+    const toggle = document.getElementById("colorMatchToggle");
+    const includeLabel = document.getElementById("colorMatchIncludeLabel");
+    const exactLabel = document.getElementById("colorMatchExactLabel");
+    if (!toggle) return;
+
+    const applyMode = (mode) => {
+        const safeMode = mode === "exact" ? "exact" : "include";
+        toggle.dataset.mode = safeMode;
+        toggle.setAttribute("aria-pressed", safeMode === "include" ? "true" : "false");
+        includeLabel?.classList.toggle("active", safeMode === "include");
+        exactLabel?.classList.toggle("active", safeMode === "exact");
+    };
+
+    applyMode(getColorMatchModeFromUrl());
+
+    toggle.addEventListener("click", () => {
+        const current = toggle.dataset.mode === "exact" ? "exact" : "include";
+        const next = current === "include" ? "exact" : "include";
+        applyMode(next);
+        logAktion("Color-Match Modus gewechselt", {
+            "Neuer Modus": next,
+            "Erklärung": "Include zeigt Karten mit der Farbe an; Exact zeigt nur Karten ohne zusätzliche Farben außerhalb der Auswahl.",
+        });
+    });
+}
+
+
+function normalizeSelectionsForFullSet({ colors, mvs, types }) {
+    const allColorCodes = new Set(["C", "W", "U", "B", "R", "G"]);
+    const allMvCodes = new Set(["0", "1", "2", "3", "4", "5", "6plus"]);
+    const allTypeCodes = new Set(["land", "creature", "artifact", "enchantment", "instant", "sorcery"]);
+
+    const uniqueColors = Array.from(new Set(colors.map((c) => c.toUpperCase())));
+    const uniqueMvs = Array.from(new Set(mvs));
+    const uniqueTypes = Array.from(new Set(types.map((t) => t.toLowerCase())));
+
+    const colorsAreFullySelected = uniqueColors.length === allColorCodes.size
+        && uniqueColors.every((c) => allColorCodes.has(c));
+    const mvsAreFullySelected = uniqueMvs.length === allMvCodes.size
+        && uniqueMvs.every((mv) => allMvCodes.has(mv));
+    const typesAreFullySelected = uniqueTypes.length === allTypeCodes.size
+        && uniqueTypes.every((t) => allTypeCodes.has(t));
+
+    return {
+        colors: colorsAreFullySelected ? [] : colors,
+        mvs: mvsAreFullySelected ? [] : mvs,
+        types: typesAreFullySelected ? [] : types,
+        colorsAreFullySelected,
+        mvsAreFullySelected,
+        typesAreFullySelected,
+    };
+}
+
+setupColorMatchToggle();
+
 // Submit -> navigate to cardpage with selected filters
 const submitButton = document.querySelector(".submit");
 
 if (submitButton) {
     submitButton.addEventListener("click", () => {
-        const colors = getSelectedColors();
-        const mvs = getSelectedMvs();
-        const types = getSelectedTypes();
+        const rawColors = getSelectedColors();
+        const rawMvs = getSelectedMvs();
+        const rawTypes = getSelectedTypes();
+
+        const normalized = normalizeSelectionsForFullSet({
+            colors: rawColors,
+            mvs: rawMvs,
+            types: rawTypes,
+        });
+
+        const colors = normalized.colors;
+        const mvs = normalized.mvs;
+        const types = normalized.types;
+        const colorMatchMode = (document.getElementById("colorMatchToggle")?.dataset.mode || "include").toLowerCase() === "exact"
+            ? "exact"
+            : "include";
 
         logAktion("Submit geklickt (Auswahl zusammenfassen)", {
-            "Ausgewählte Farben": colors.length ? colors : "(keine)",
-            "Ausgewählte MV": mvs.length ? mvs : "(keine)",
-            "Ausgewählte Typen": types.length ? types : "(keine)",
+            "Ausgewählte Farben (raw)": rawColors.length ? rawColors : "(keine)",
+            "Ausgewählte MV (raw)": rawMvs.length ? rawMvs : "(keine)",
+            "Ausgewählte Typen (raw)": rawTypes.length ? rawTypes : "(keine)",
+            "Farben vollständig ausgewählt?": normalized.colorsAreFullySelected,
+            "MV vollständig ausgewählt?": normalized.mvsAreFullySelected,
+            "Typen vollständig ausgewählt?": normalized.typesAreFullySelected,
+            "Farben (für Query)": colors.length ? colors : "(kein Filter)",
+            "MV (für Query)": mvs.length ? mvs : "(kein Filter)",
+            "Typen (für Query)": types.length ? types : "(kein Filter)",
+            "Color-Match": colorMatchMode,
         });
 
         const params = new URLSearchParams();
         if (colors.length) params.set("colors", colors.join(","));
         if (mvs.length) params.set("mvs", mvs.join(","));
         if (types.length) params.set("types", types.join(","));
+        params.set("colorMode", colorMatchMode);
 
         const url = params.toString() ? `cardpage.html?${params.toString()}` : "cardpage.html";
 

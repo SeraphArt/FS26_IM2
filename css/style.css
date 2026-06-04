@@ -211,6 +211,94 @@ section div {
     min-height: clamp(140px, 18vw, 200px);
 }
 
+.color-match-toggle-wrap {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: clamp(6px, 0.9vw, 10px);
+
+    margin-top: clamp(8px, 1.2vw, 14px);
+    margin-bottom: clamp(10px, 1.6vw, 18px);
+}
+
+.color-match-label,
+.color-match-value {
+    font-family: Adamina, serif;
+    font-size: clamp(14px, 1.8vw, 20px);
+    font-weight: 700;
+    color: #5A2600;
+}
+
+.color-match-switch-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(10px, 1.6vw, 16px);
+}
+
+.color-match-side-label {
+    font-family: Adamina, serif;
+    font-size: clamp(14px, 1.8vw, 20px);
+    font-weight: 700;
+    color: rgba(90, 38, 0, 0.62);
+    transition: color 120ms ease;
+}
+
+.color-match-side-label.active {
+    color: #5A2600;
+}
+
+.color-match-toggle {
+    appearance: none;
+    border: clamp(1px, 0.2vw, 2px) solid #6b3e11;
+    border-radius: 999px;
+    background: #dfc7a8;
+
+    width: clamp(64px, 8vw, 82px);
+    height: clamp(34px, 4.6vw, 42px);
+
+    cursor: pointer;
+    user-select: none;
+
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+    position: relative;
+}
+
+.color-match-toggle::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: clamp(3px, 0.45vw, 5px);
+    width: clamp(24px, 3.2vw, 30px);
+    height: clamp(24px, 3.2vw, 30px);
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.25);
+    transform: translateY(-50%);
+    transition: transform 150ms ease;
+}
+
+.color-match-toggle:hover {
+    transform: translateY(-1px);
+    box-shadow: 0px 6px 14px rgba(0, 0, 0, 0.24);
+}
+
+.color-match-toggle[data-mode="exact"] {
+    background: #6b3e11;
+}
+
+.color-match-toggle[data-mode="exact"]::before {
+    transform: translate(clamp(28px, 3.5vw, 36px), -50%);
+}
+
+.color-match-toggle:focus-visible {
+    outline: clamp(2px, 0.35vw, 4px) solid #5A2600;
+    outline-offset: clamp(2px, 0.3vw, 4px);
+}
+
 .mana_color_selector dotlottie-wc {
     width: clamp(72px, 10vw, 120px);
     height: clamp(72px, 10vw, 120px);

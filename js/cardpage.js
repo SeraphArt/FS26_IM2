@@ -44,11 +44,21 @@ function parseCsvParam(params, name) {
         .filter(Boolean);
 }
 
-function buildScryfallQuery({ colors, mvs, types }) {
+
+function buildScryfallQuery({ colors, mvs, types, colorMode }) {
     const parts = ["set:tla"]; // fixed set
 
     if (colors.length) {
-        const clauses = colors.map((c) => `c:${c.toLowerCase()}`);
+        const mode = colorMode === "exact" ? "exact" : "include";
+        const clauses = colors.map((c) => {
+            const color = c.toUpperCase();
+            if (color === "C") {
+                return "c:c";
+            }
+            return mode === "exact"
+                ? `id:${color.toLowerCase()}`
+                : `id>=${color.toLowerCase()}`;
+        });
         parts.push(`(${clauses.join(" OR ")})`);
     }
 
@@ -66,6 +76,69 @@ function buildScryfallQuery({ colors, mvs, types }) {
     }
 
     return parts.join(" ");
+}
+
+function getCardColors(card) {
+    if (Array.isArray(card?.colors)) {
+        return card.colors;
+    }
+
+    if (Array.isArray(card?.card_faces)) {
+        const combined = new Set();
+        for (const face of card.card_faces) {
+            if (!Array.isArray(face?.colors)) continue;
+            for (const color of face.colors) {
+                combined.add(color);
+            }
+        }
+        return Array.from(combined);
+    }
+
+    return [];
+}
+
+function getCardColorIdentity(card) {
+    if (Array.isArray(card?.color_identity)) {
+        return card.color_identity;
+    }
+    return [];
+}
+
+function matchesSelectedColors(card, selectedColors, colorMode) {
+    if (!selectedColors.length) return true;
+
+    const normalizedSelections = selectedColors.map((c) => c.toUpperCase());
+    const selectedSet = new Set(normalizedSelections.filter((c) => c !== "C"));
+    const cardColors = getCardColors(card);
+    const isColorless = cardColors.length === 0;
+    const cardColorIdentity = getCardColorIdentity(card);
+    const hasColorlessIdentity = cardColorIdentity.length === 0;
+
+    const mode = colorMode === "exact" ? "exact" : "include";
+
+    const includesOneSelected = normalizedSelections.some((selectedColor) => {
+        if (selectedColor === "C") {
+            return isColorless && hasColorlessIdentity;
+        }
+        return cardColors.includes(selectedColor) || cardColorIdentity.includes(selectedColor);
+    });
+
+    if (mode !== "exact") {
+        return includesOneSelected;
+    }
+
+    if (normalizedSelections.includes("C")) {
+        // exact + colorless means strictly colorless
+        if (selectedSet.size === 0) {
+            return isColorless && hasColorlessIdentity;
+        }
+        return false;
+    }
+
+    const colorsSubset = cardColors.every((color) => selectedSet.has(color));
+    const identitySubset = cardColorIdentity.every((color) => selectedSet.has(color));
+
+    return includesOneSelected && colorsSubset && identitySubset;
 }
 
 function getCardImageUrl(card) {
@@ -177,15 +250,17 @@ async function main() {
     const colors = parseCsvParam(params, "colors");
     const mvs = parseCsvParam(params, "mvs");
     const types = parseCsvParam(params, "types");
+    const colorMode = (params.get("colorMode") || "include").toLowerCase() === "exact" ? "exact" : "include";
 
     logAktion("Filter aus URL gelesen", {
         "colors": colors.length ? colors : "(keine)",
         "mvs": mvs.length ? mvs : "(keine)",
         "types": types.length ? types : "(keine)",
+        "colorMode": colorMode,
         "Erklärung": "Diese Werte kamen von der Startseite (Submit).",
     });
 
-    const query = buildScryfallQuery({ colors, mvs, types });
+    const query = buildScryfallQuery({ colors, mvs, types, colorMode });
 
     logAktion("Scryfall Query gebaut", {
         "Query": query,
@@ -198,7 +273,21 @@ async function main() {
 
     try {
         const cards = await fetchScryfallCards(query);
-        renderCards(cards);
+        const shouldApplyColorPostFilter = colors.length > 0;
+
+        const cardsAfterColorCheck = shouldApplyColorPostFilter
+            ? cards.filter((card) => matchesSelectedColors(card, colors, colorMode))
+            : cards;
+
+        logAktion("Farbfilter nach API-Farbfeld angewendet", {
+            "Vorher (Anzahl Karten)": cards.length,
+            "Nachher (Anzahl Karten)": cardsAfterColorCheck.length,
+            "Erklärung": shouldApplyColorPostFilter
+                ? "Farbprüfung nutzt immer colors + color_identity (inkl. multicolor identities und strict colorless für C)."
+                : "Kein Farbfilter ausgewählt.",
+        });
+
+        renderCards(cardsAfterColorCheck);
 
         // Extra: Klicks auf Karten (Links) nachvollziehbar machen
         const results = document.getElementById("results");
