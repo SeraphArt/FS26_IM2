@@ -19,7 +19,7 @@ function buildScryfallQuery({ colors, mvs, types, colorMode }) {
                 return "c:c";
             }
             return mode === "exact"
-                ? `id:${color.toLowerCase()}`
+                ? `id>=${color.toLowerCase()}`
                 : `id>=${color.toLowerCase()}`;
         });
         parts.push(`(${clauses.join(" OR ")})`);
@@ -41,25 +41,6 @@ function buildScryfallQuery({ colors, mvs, types, colorMode }) {
     return parts.join(" ");
 }
 
-function getCardColors(card) {
-    if (Array.isArray(card?.colors)) {
-        return card.colors;
-    }
-
-    if (Array.isArray(card?.card_faces)) {
-        const combined = new Set();
-        for (const face of card.card_faces) {
-            if (!Array.isArray(face?.colors)) continue;
-            for (const color of face.colors) {
-                combined.add(color);
-            }
-        }
-        return Array.from(combined);
-    }
-
-    return [];
-}
-
 function getCardColorIdentity(card) {
     if (Array.isArray(card?.color_identity)) {
         return card.color_identity;
@@ -72,8 +53,6 @@ function matchesSelectedColors(card, selectedColors, colorMode) {
 
     const normalizedSelections = selectedColors.map((c) => c.toUpperCase());
     const selectedSet = new Set(normalizedSelections.filter((c) => c !== "C"));
-    const cardColors = getCardColors(card);
-    const isColorless = cardColors.length === 0;
     const cardColorIdentity = getCardColorIdentity(card);
     const hasColorlessIdentity = cardColorIdentity.length === 0;
 
@@ -81,9 +60,9 @@ function matchesSelectedColors(card, selectedColors, colorMode) {
 
     const includesOneSelected = normalizedSelections.some((selectedColor) => {
         if (selectedColor === "C") {
-            return isColorless && hasColorlessIdentity;
+            return hasColorlessIdentity;
         }
-        return cardColors.includes(selectedColor) || cardColorIdentity.includes(selectedColor);
+        return cardColorIdentity.includes(selectedColor);
     });
 
     if (mode !== "exact") {
@@ -93,15 +72,20 @@ function matchesSelectedColors(card, selectedColors, colorMode) {
     if (normalizedSelections.includes("C")) {
         // exact + colorless means strictly colorless
         if (selectedSet.size === 0) {
-            return isColorless && hasColorlessIdentity;
+            return hasColorlessIdentity;
         }
         return false;
     }
 
-    const colorsSubset = cardColors.every((color) => selectedSet.has(color));
-    const identitySubset = cardColorIdentity.every((color) => selectedSet.has(color));
+    const hasOnlySelectedColors = cardColorIdentity.every((color) => selectedSet.has(color));
 
-    return includesOneSelected && colorsSubset && identitySubset;
+    const hasAllSelectedColors = Array.from(selectedSet).every(
+        (selectedColor) => cardColorIdentity.includes(selectedColor)
+    );
+
+    // In exact mode, every selected color must be present, and there must be
+    // no additional colors outside the selected set in color_identity.
+    return hasOnlySelectedColors && hasAllSelectedColors;
 }
 
 function getCardImageUrl(card) {
@@ -149,7 +133,7 @@ function renderCards(cards) {
     results.innerHTML = "";
 
     if (!cards.length) {
-        status.textContent = "No cards found for your selection.";
+        status.textContent = "No cards were found with your selection.";
         return;
     }
 

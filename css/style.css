@@ -32,7 +32,7 @@ body {
     justify-content: center;
     align-items: center;
 
-    height: clamp(200px, 24vw, 280px);
+    height: clamp(140px, 20vw, 260px);
     overflow: hidden;
     /* optional */
 }
@@ -42,7 +42,8 @@ body {
 .Ecke1,
 .Ecke2 {
     position: absolute;
-    width: clamp(140px, 16vw, 260px);
+    top: 0;
+    width: clamp(84px, 14vw, 220px);
     height: auto;
     padding: clamp(6px, 1vw, 10px);
 }
@@ -57,13 +58,22 @@ body {
     rotate: 180deg;
 }
 
+.div1 section {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding-inline: clamp(80px, 18vw, 300px);
+    box-sizing: border-box;
+}
+
 
 section div {
     font-family: Adamina, serif;
     font-weight: 400;
-    font-size: clamp(40px, 7vw, 96px);
+    font-size: clamp(30px, 6.2vw, 96px);
     color: white;
     text-align: center;
+    line-height: 1.05;
 }
 
 .headline-divider {
@@ -581,7 +591,7 @@ section div {
     background-color: #6b3e11;
     position: relative;
 
-    height: clamp(200px, 24vw, 280px);
+    height: clamp(140px, 20vw, 260px);
     width: 100%;
 
     overflow: hidden;
@@ -590,7 +600,8 @@ section div {
 .FooterEcke1,
 .FooterEcke2 {
     position: absolute;
-    width: clamp(140px, 16vw, 260px);
+    bottom: 0;
+    width: clamp(84px, 14vw, 220px);
     height: auto;
     padding: clamp(6px, 1vw, 10px);
 }
@@ -602,4 +613,29 @@ section div {
 .FooterEcke2 {
     right: 0;
     rotate: -90deg;
+}
+
+@media (max-width: 640px) {
+    .div1 {
+        height: clamp(120px, 30vw, 170px);
+    }
+
+    .footer {
+        height: clamp(120px, 30vw, 170px);
+    }
+
+    .div1 section {
+        padding-inline: clamp(70px, 22vw, 120px);
+    }
+
+    section div {
+        font-size: clamp(22px, 7vw, 36px);
+    }
+}
+
+@media (max-width: 420px) {
+    .div1,
+    .footer {
+        height: clamp(96px, 28vw, 132px);
+    }
 }
