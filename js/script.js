@@ -129,6 +129,8 @@ function isFullySelected(values, fullList, normalizer = (value) => value) {
 }
 
 function normalizeSelections({ colors, mvs, types }) {
+    // If the user selected all options of a category, we send an empty list
+    // so cardpage treats it as "no restriction" for that category.
     return {
         colors: isFullySelected(colors, ALL_COLORS, (color) => color.toUpperCase()) ? [] : colors,
         mvs: isFullySelected(mvs, ALL_MANA_VALUES) ? [] : mvs,
@@ -152,6 +154,7 @@ function setupSubmitButton() {
         const colorMode = colorModeToggle?.dataset.mode === "exact" ? "exact" : "include";
         const params = new URLSearchParams();
 
+        // Only include params that actively filter results.
         if (selected.colors.length) params.set("colors", selected.colors.join(","));
         if (selected.mvs.length) params.set("mvs", selected.mvs.join(","));
         if (selected.types.length) params.set("types", selected.types.join(","));

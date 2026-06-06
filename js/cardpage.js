@@ -27,6 +27,7 @@ function buildScryfallQuery({ colors, mvs, types }) {
     const queryParts = [`set:${FIXED_SET_CODE}`];
 
     if (colors.length) {
+        // Build an OR color block: cards can match any selected color.
         const colorParts = colors.map((color) => {
             const normalized = color.toUpperCase();
             return normalized === "C" ? "c:c" : `id>=${normalized.toLowerCase()}`;
@@ -65,6 +66,7 @@ function cardMatchesSelectedColors(card, selectedColors, colorMode) {
     });
 
     if (colorMode !== "exact") {
+        // Include mode: at least one selected color must match.
         return hasAnySelectedColor;
     }
 
@@ -79,6 +81,7 @@ function cardMatchesSelectedColors(card, selectedColors, colorMode) {
     const usesOnlySelectedColors = cardColors.every((color) => selectedColoredSet.has(color));
     const includesAllSelectedColors = Array.from(selectedColoredSet).every((color) => cardColors.includes(color));
 
+    // Exact mode: no extra colors and all selected colors must be present.
     return usesOnlySelectedColors && includesAllSelectedColors;
 }
 

@@ -101,7 +101,7 @@ body {
     rotate: 180deg;
 }
 
-.div1 section {
+.div1 .brand-title-wrap {
     width: 100%;
     display: flex;
     justify-content: center;
@@ -110,7 +110,7 @@ body {
 }
 
 
-section div {
+.brand-title-wrap div {
     font-family: var(--font-main);
     font-weight: 400;
     font-size: clamp(30px, 6.2vw, 96px);
@@ -131,6 +131,7 @@ section div {
     margin-bottom: 0;
 }
 
+.headline-divider h1,
 .headline-divider h2 {
     font-family: var(--font-main);
     font-size: clamp(28px, 5vw, 64px);
@@ -554,6 +555,7 @@ section div {
     margin-bottom: clamp(20px, 3.5vw, 40px);
 }
 
+.mana-divider h2,
 .mana-divider h3 {
     font-family: var(--font-main);
     font-size: clamp(18px, 2.5vw, 32px);
@@ -764,11 +766,11 @@ section div {
         height: clamp(120px, 30vw, 170px);
     }
 
-    .div1 section {
+    .div1 .brand-title-wrap {
         padding-inline: clamp(70px, 22vw, 120px);
     }
 
-    section div {
+    .brand-title-wrap div {
         font-size: clamp(22px, 7vw, 36px);
     }
 }
