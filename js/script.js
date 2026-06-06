@@ -1,60 +1,82 @@
-const toggleButton = document.getElementById("toggleButton");
-const dropdown = document.getElementById("dropdown");
-const arrow = document.getElementById("arrow");
+const ALL_COLORS = ["C", "W", "U", "B", "R", "G"];
+const ALL_MANA_VALUES = ["0", "1", "2", "3", "4", "5", "6plus"];
+const ALL_TYPES = ["land", "creature", "artifact", "enchantment", "instant", "sorcery"];
 
-if (toggleButton && dropdown && arrow) {
+function logAction(message, details) {
+    if (details === undefined) {
+        console.log(`[Home] ${message}`);
+        return;
+    }
+
+    console.log(`[Home] ${message}`, details);
+}
+
+function setupTypeDropdown() {
+    const toggleButton = document.getElementById("toggleButton");
+    const dropdown = document.getElementById("dropdown");
+    const arrow = document.getElementById("arrow");
+
+    if (!toggleButton || !dropdown || !arrow) return;
+
     toggleButton.addEventListener("click", () => {
         dropdown.classList.toggle("open");
         arrow.classList.toggle("down");
         arrow.classList.toggle("up");
+
+        logAction(`Type dropdown ${dropdown.classList.contains("open") ? "opened" : "closed"}`);
     });
 }
 
-document.querySelectorAll(".menu_point").forEach((point) => {
-    point.addEventListener("click", (event) => {
-        event.stopPropagation();
-        point.classList.toggle("active");
-    });
-});
+function setupTypePoints() {
+    const points = document.querySelectorAll(".menu_point");
 
-function findFilterTarget(event, selector, container = document) {
+    points.forEach((point) => {
+        point.addEventListener("click", (event) => {
+            event.stopPropagation();
+            point.classList.toggle("active");
+
+            const typeName = point.closest(".menu-item")?.dataset.type || "unknown";
+            logAction(`Type filter ${point.classList.contains("active") ? "selected" : "deselected"}`, typeName);
+        });
+    });
+}
+
+function findClickedFilter(event, selector) {
     if (typeof event.composedPath === "function") {
-        const hit = event.composedPath().find((node) => node?.matches?.(selector));
-        if (hit && container.contains(hit)) return hit;
+        const fromPath = event.composedPath().find((node) => node?.matches?.(selector));
+        if (fromPath) return fromPath;
     }
 
-    const direct = event.target?.closest?.(selector);
-    if (direct && container.contains(direct)) return direct;
-
-    return null;
+    return event.target?.closest?.(selector) || null;
 }
 
-document.addEventListener(
-    "click",
-    (event) => {
-        const colorEl = findFilterTarget(event, ".filter-color");
-        if (colorEl) {
-            colorEl.classList.toggle("selected");
-            return;
-        }
+function setupFilterClicks() {
+    // Capture phase is needed so clicks inside the Lottie web component are detected reliably.
+    document.addEventListener(
+        "click",
+        (event) => {
+            const colorFilter = findClickedFilter(event, ".filter-color");
+            if (colorFilter) {
+                colorFilter.classList.toggle("selected");
+                const colorCode = colorFilter.dataset.color || "unknown";
+                logAction(`Color filter ${colorFilter.classList.contains("selected") ? "selected" : "deselected"}`, colorCode);
+                return;
+            }
 
-        const mvEl = findFilterTarget(event, ".filter-mv");
-        if (mvEl) {
-            mvEl.classList.toggle("selected");
-        }
-    },
-    true
-);
-
-function getSelectedColors() {
-    return Array.from(document.querySelectorAll(".filter-color.selected"))
-        .map((el) => (el.dataset.color || "").trim())
-        .filter(Boolean);
+            const manaFilter = findClickedFilter(event, ".filter-mv");
+            if (manaFilter) {
+                manaFilter.classList.toggle("selected");
+                const manaValue = manaFilter.dataset.mv || "unknown";
+                logAction(`Mana value filter ${manaFilter.classList.contains("selected") ? "selected" : "deselected"}`, manaValue);
+            }
+        },
+        true
+    );
 }
 
-function getSelectedMvs() {
-    return Array.from(document.querySelectorAll(".filter-mv.selected"))
-        .map((el) => (el.dataset.mv || "").trim())
+function getSelectedData(selector, dataKey) {
+    return Array.from(document.querySelectorAll(selector))
+        .map((element) => (element.dataset[dataKey] || "").trim())
         .filter(Boolean);
 }
 
@@ -64,7 +86,7 @@ function getSelectedTypes() {
         .filter(Boolean);
 }
 
-function getColorMatchModeFromUrl() {
+function readColorModeFromUrl() {
     const mode = new URLSearchParams(window.location.search).get("colorMode");
     return mode === "exact" ? "exact" : "include";
 }
@@ -73,71 +95,83 @@ function setupColorMatchToggle() {
     const toggle = document.getElementById("colorMatchToggle");
     const includeLabel = document.getElementById("colorMatchIncludeLabel");
     const exactLabel = document.getElementById("colorMatchExactLabel");
+
     if (!toggle) return;
 
-    const applyMode = (mode) => {
+    function setColorMode(mode) {
         const safeMode = mode === "exact" ? "exact" : "include";
-        toggle.dataset.mode = safeMode;
-        toggle.setAttribute("aria-pressed", safeMode === "include" ? "true" : "false");
-        includeLabel?.classList.toggle("active", safeMode === "include");
-        exactLabel?.classList.toggle("active", safeMode === "exact");
-    };
+        const isInclude = safeMode === "include";
 
-    applyMode(getColorMatchModeFromUrl());
+        toggle.dataset.mode = safeMode;
+        toggle.setAttribute("aria-pressed", isInclude ? "true" : "false");
+        includeLabel?.classList.toggle("active", isInclude);
+        exactLabel?.classList.toggle("active", !isInclude);
+    }
+
+    setColorMode(readColorModeFromUrl());
+
     toggle.addEventListener("click", () => {
-        const next = toggle.dataset.mode === "exact" ? "include" : "exact";
-        applyMode(next);
+        const currentMode = toggle.dataset.mode === "exact" ? "exact" : "include";
+        const nextMode = currentMode === "exact" ? "include" : "exact";
+        setColorMode(nextMode);
+        logAction("Color match mode changed", nextMode);
     });
 }
 
-function normalizeSelectionsForFullSet({ colors, mvs, types }) {
-    const allColorCodes = new Set(["C", "W", "U", "B", "R", "G"]);
-    const allMvCodes = new Set(["0", "1", "2", "3", "4", "5", "6plus"]);
-    const allTypeCodes = new Set(["land", "creature", "artifact", "enchantment", "instant", "sorcery"]);
+function isFullySelected(values, fullList, normalizer = (value) => value) {
+    const uniqueValues = new Set(values.map(normalizer));
+    const normalizedFullList = fullList.map(normalizer);
 
-    const uniqueColors = Array.from(new Set(colors.map((c) => c.toUpperCase())));
-    const uniqueMvs = Array.from(new Set(mvs));
-    const uniqueTypes = Array.from(new Set(types.map((t) => t.toLowerCase())));
+    return (
+        uniqueValues.size === normalizedFullList.length &&
+        normalizedFullList.every((fullValue) => uniqueValues.has(fullValue))
+    );
+}
 
+function normalizeSelections({ colors, mvs, types }) {
     return {
-        colors:
-            uniqueColors.length === allColorCodes.size && uniqueColors.every((c) => allColorCodes.has(c))
-                ? []
-                : colors,
-        mvs:
-            uniqueMvs.length === allMvCodes.size && uniqueMvs.every((mv) => allMvCodes.has(mv))
-                ? []
-                : mvs,
-        types:
-            uniqueTypes.length === allTypeCodes.size && uniqueTypes.every((t) => allTypeCodes.has(t))
-                ? []
-                : types,
+        colors: isFullySelected(colors, ALL_COLORS, (color) => color.toUpperCase()) ? [] : colors,
+        mvs: isFullySelected(mvs, ALL_MANA_VALUES) ? [] : mvs,
+        types: isFullySelected(types, ALL_TYPES, (type) => type.toLowerCase()) ? [] : types,
     };
 }
 
-setupColorMatchToggle();
+function setupSubmitButton() {
+    const submitButton = document.querySelector(".submit");
+    const colorModeToggle = document.getElementById("colorMatchToggle");
 
-const submitButton = document.querySelector(".submit");
-if (submitButton) {
+    if (!submitButton) return;
+
     submitButton.addEventListener("click", () => {
-        const normalized = normalizeSelectionsForFullSet({
-            colors: getSelectedColors(),
-            mvs: getSelectedMvs(),
+        const selected = normalizeSelections({
+            colors: getSelectedData(".filter-color.selected", "color"),
+            mvs: getSelectedData(".filter-mv.selected", "mv"),
             types: getSelectedTypes(),
         });
 
-        const colorMatchMode =
-            (document.getElementById("colorMatchToggle")?.dataset.mode || "include") === "exact"
-                ? "exact"
-                : "include";
-
+        const colorMode = colorModeToggle?.dataset.mode === "exact" ? "exact" : "include";
         const params = new URLSearchParams();
-        if (normalized.colors.length) params.set("colors", normalized.colors.join(","));
-        if (normalized.mvs.length) params.set("mvs", normalized.mvs.join(","));
-        if (normalized.types.length) params.set("types", normalized.types.join(","));
-        params.set("colorMode", colorMatchMode);
 
-        const suffix = params.toString();
-        window.location.href = suffix ? `cardpage.html?${suffix}` : "cardpage.html";
+        if (selected.colors.length) params.set("colors", selected.colors.join(","));
+        if (selected.mvs.length) params.set("mvs", selected.mvs.join(","));
+        if (selected.types.length) params.set("types", selected.types.join(","));
+        params.set("colorMode", colorMode);
+
+        logAction("Submit filters", {
+            colors: selected.colors,
+            manaValues: selected.mvs,
+            types: selected.types,
+            colorMode,
+        });
+
+        const queryString = params.toString();
+        window.location.href = queryString ? `cardpage.html?${queryString}` : "cardpage.html";
     });
 }
+
+setupTypeDropdown();
+setupTypePoints();
+setupFilterClicks();
+setupColorMatchToggle();
+setupSubmitButton();
+logAction("Page ready");
